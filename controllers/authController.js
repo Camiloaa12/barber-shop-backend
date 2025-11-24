@@ -55,6 +55,10 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Credenciales inválidas" })
     }
 
+    if (!user.isActive) {
+      return res.status(403).json({ message: "Usuario desactivado. Contacte al administrador." })
+    }
+
     const isPasswordValid = await user.comparePassword(password)
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Credenciales inválidas" })

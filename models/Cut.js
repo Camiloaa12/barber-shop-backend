@@ -23,6 +23,11 @@ const cutSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  service: {
+    type: String,
+    required: true,
+    default: "Corte Regular",
+  },
   paymentMethod: {
     type: String,
     enum: ["efectivo", "transferencia", "tarjeta", "otro"],
