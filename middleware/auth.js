@@ -1,27 +1,26 @@
-import jwt from "jsonwebtoken"
+
+import jwt from 'jsonwebtoken';
 
 export const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1]
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) return res.status(401).json({ msg: "Acceso denegado" });
 
-  if (!token) {
-    return res.status(401).json({ message: "Token no proporcionado" })
-  }
+  const token = authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : authHeader;
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    req.userId = decoded.userId
-    req.userRole = decoded.role
-    next()
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = verified;
+    next();
   } catch (err) {
-    return res.status(401).json({ message: "Token inválido" })
+    res.status(400).json({ msg: "Token inválido" });
   }
-}
+};
 
-export const requireRole = (allowedRoles) => {
-  return (req, res, next) => {
-    if (!allowedRoles.includes(req.userRole)) {
-      return res.status(403).json({ message: "No autorizado" })
-    }
-    next()
+export const verifyAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ msg: "Solo administradores" });
   }
-}
+  next();
+};

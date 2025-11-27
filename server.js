@@ -1,74 +1,59 @@
-import express from "express"
-import mongoose from "mongoose"
-import cors from "cors"
-import dotenv from "dotenv"
-import authRoutes from "./routes/auth.js"
-import clientsRoutes from "./routes/clients.js"
-import cutsRoutes from "./routes/cuts.js"
-import statsRoutes from "./routes/stats.js"
-import barbersRoutes from "./routes/barbers.js"
-import User from "./models/User.js"
 
-dotenv.config()
+import express from 'express';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import bcrypt from 'bcryptjs';
+import User from './models/User.js';
 
-const app = express()
+import authRoutes from './routes/auth.js';
+import adminRoutes from './routes/admin.js';
+import cutRoutes from './routes/cuts.js';
+import appointmentRoutes from './routes/appointments.js';
+import clientRoutes from './routes/clients.js';
+import statsRoutes from './routes/stats.js';
 
-// Middleware
-app.use(cors())
-app.use(express.json())
+dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, '../softbarber-frontend')));
 
-// Helper: ensure default admin
-async function ensureDefaultAdmin() {
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@barber.com"
-  const adminPassword = process.env.ADMIN_PASSWORD || "Admin123!"
-  const adminName = process.env.ADMIN_NAME || "Admin"
-  const adminLastName = process.env.ADMIN_LASTNAME || "User"
-
-  try {
-    const existing = await User.findOne({ email: adminEmail })
-    if (existing) {
-      console.log(`Admin por defecto ya existe: ${adminEmail}`)
-      return
-    }
-
-    const adminUser = new User({
-      name: adminName,
-      lastName: adminLastName,
-      email: adminEmail,
-      password: adminPassword,
-      role: "admin",
-    })
-    await adminUser.save()
-    console.log(`Admin por defecto creado: ${adminEmail}`)
-  } catch (err) {
-    console.log("Error creando admin por defecto:", err.message)
-  }
-}
-
-// MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
-    console.log("MongoDB conectado")
-    await ensureDefaultAdmin()
+    console.log("MongoDB conectado");
+    // Superadmin único
+    const { ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_USERNAME } = process.env;
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+      console.warn('ADMIN_* no configurado; no se creará superadmin.');
+    } else {
+      const adminExists = await User.findOne({ role: 'admin' });
+      if (!adminExists) {
+        const hashed = await bcrypt.hash(ADMIN_PASSWORD, 10);
+        await new User({
+          username: ADMIN_USERNAME || 'superadmin',
+          email: ADMIN_EMAIL,
+          password: hashed,
+          role: 'admin',
+          active: true,
+        }).save();
+        console.log('Superadmin creado:', ADMIN_EMAIL);
+      }
+    }
   })
-  .catch((err) => console.log("Error en MongoDB:", err))
+  .catch(err => console.error(err));
 
-// Routes
-app.use("/api/auth", authRoutes)
-app.use("/api/clients", clientsRoutes)
-app.use("/api/cuts", cutsRoutes)
-app.use("/api/stats", statsRoutes)
-app.use("/api/barbers", barbersRoutes)
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/cuts', cutRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/stats', statsRoutes);
 
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, '../softbarber-frontend/index.html')));
 
-// Export for Vercel (serverless)
-export default app
-
-// Local development server
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000
-  app.listen(PORT, () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`)
-  })
-}
+app.listen(process.env.PORT || 4000, () => console.log(`Servidor activo en puerto ${process.env.PORT || 4000}`));
