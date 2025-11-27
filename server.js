@@ -18,7 +18,7 @@ const app = express();
 // ✅ CORS TOTAL PARA PRODUCCIÓN (SIN BLOQUEOS)
 app.use(cors({
   origin: "*",
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.options("*", cors());
