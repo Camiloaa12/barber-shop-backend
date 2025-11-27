@@ -19,9 +19,17 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
-app.use(cors({ origin: ['https://tu-frontend.vercel.app'] }));
+// Configuración CORS dinámica por ENV
+const allowlist = (process.env.CORS_ORIGINS || 'https://tu-frontend.vercel.app,http://localhost:5173').split(',').map(o => o.trim());
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin || allowlist.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  }
+}));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../softbarber-frontend')));
+// Eliminado: servir carpeta frontend local que ya no existe
+// app.use(express.static(path.join(__dirname, '../softbarber-frontend')));
 
 mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
@@ -54,6 +62,7 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/stats', statsRoutes);
 
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, '../softbarber-frontend/index.html')));
+// Endpoint raíz de salud para Render
+app.get('/', (req, res) => res.send('SoftBarber API OK'));
 
 app.listen(process.env.PORT || 4000, () => console.log(`Servidor activo en puerto ${process.env.PORT || 4000}`));
