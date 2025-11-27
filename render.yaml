@@ -9,8 +9,9 @@ services:
     buildCommand: npm install
     startCommand: npm start
     autoDeploy: true
-    # Nota: las variables sensibles (MONGO_URI, JWT_SECRET, etc.) se configuran en Render UI.
-    # Para evitar el error de blueprint, sólo declaramos variables con valor explícito aquí.
+    # Variables con valor explícito
     envVars:
       - key: NODE_VERSION
         value: 18
+      - key: CORS_ORIGINS
+        value: https://barber-shop-mern.vercel.app,http://localhost:5173
