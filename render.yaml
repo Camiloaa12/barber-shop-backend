@@ -1,0 +1,17 @@
+# render.yaml - coloca esto en la raíz del repo (main branch)
+services:
+  - type: web
+    name: softbarber-backend
+    env: node
+    plan: free
+    region: oregon # puedes cambiar a "oregon", "frankfurt", etc.
+    branch: main
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    autoDeploy: true
+    envVars:
+      - key: MONGO_URI
+        scope: private
+        # NO pongas aquí el valor si no quieres subirlo. Puedes configurarlo en Render UI.
+      - key: JWT_SECRET
+        scope: private
