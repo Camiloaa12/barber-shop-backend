@@ -14,4 +14,4 @@ services:
       - key: NODE_VERSION
         value: 18
       - key: CORS_ORIGINS
-        value: https://barber-shop-mern.vercel.app,http://localhost:5173
+        value: https://softbarber-frontend.onrender.com,http://localhost:5173
