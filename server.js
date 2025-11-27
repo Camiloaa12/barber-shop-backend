@@ -61,7 +61,14 @@ app.use("/api/cuts", cutsRoutes)
 app.use("/api/stats", statsRoutes)
 app.use("/api/barbers", barbersRoutes)
 
-const PORT = process.env.PORT || 5000
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`)
-})
+
+// Export for Vercel (serverless)
+export default app
+
+// Local development server
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000
+  app.listen(PORT, () => {
+    console.log(`Servidor corriendo en puerto ${PORT}`)
+  })
+}
