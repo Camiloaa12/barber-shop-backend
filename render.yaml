@@ -1,17 +1,16 @@
-# render.yaml - coloca esto en la raíz del repo (main branch)
+# render.yaml - blueprint para Render
 services:
   - type: web
     name: softbarber-backend
     env: node
     plan: free
-    region: oregon # puedes cambiar a "oregon", "frankfurt", etc.
+    region: oregon
     branch: main
-    buildCommand: "npm install"
-    startCommand: "npm start"
+    buildCommand: npm install
+    startCommand: npm start
     autoDeploy: true
+    # Nota: las variables sensibles (MONGO_URI, JWT_SECRET, etc.) se configuran en Render UI.
+    # Para evitar el error de blueprint, sólo declaramos variables con valor explícito aquí.
     envVars:
-      - key: MONGO_URI
-        scope: private
-        # NO pongas aquí el valor si no quieres subirlo. Puedes configurarlo en Render UI.
-      - key: JWT_SECRET
-        scope: private
+      - key: NODE_VERSION
+        value: 18
